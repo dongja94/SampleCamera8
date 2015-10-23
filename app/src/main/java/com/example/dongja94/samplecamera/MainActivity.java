@@ -2,6 +2,8 @@ package com.example.dongja94.samplecamera;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -14,6 +16,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Gallery;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,6 +25,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     Camera mCamera;
     SurfaceHolder mHolder;
+    Gallery gallery;
+    ImageAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +43,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                         .setAction("Action", null).show();
             }
         });
+
+        gallery = (Gallery)findViewById(R.id.gallery);
+        mAdapter = new ImageAdapter();
+        gallery.setAdapter(mAdapter);
 
         SurfaceView view = (SurfaceView)findViewById(R.id.surfaceView);
         view.getHolder().addCallback(this);
@@ -58,6 +67,44 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 changeEffect();
             }
         });
+
+        btn = (Button)findViewById(R.id.btn_picture);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                captureImage();
+            }
+        });
+    }
+
+    Camera.ShutterCallback shutter = new Camera.ShutterCallback() {
+        @Override
+        public void onShutter() {
+
+        }
+    };
+
+    Camera.PictureCallback raw = new Camera.PictureCallback() {
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+
+        }
+    };
+
+    Camera.PictureCallback jpeg = new Camera.PictureCallback() {
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = 4;
+            Bitmap bm = BitmapFactory.decodeByteArray(data, 0, data.length, opts);
+            mAdapter.add(bm);
+        }
+    };
+
+    private void captureImage() {
+        if (mCamera != null) {
+            mCamera.takePicture(null, raw, jpeg);
+        }
     }
 
     private void changeEffect() {
